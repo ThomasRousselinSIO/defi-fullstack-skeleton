@@ -27,7 +27,7 @@ export default function HotelCard({ hotel }: { hotel: Hotel }) {
       </div>
       <div className="p-6">
         <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
+          <div className="space-y-1">
             <h3 className="text-xl font-semibold text-white">{hotel.name}</h3>
             <p className="text-sm text-cyan-300">{hotel.city}, {hotel.country}</p>
           </div>
