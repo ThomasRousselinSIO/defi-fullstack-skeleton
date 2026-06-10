@@ -1,28 +1,27 @@
-﻿import React from "react";
-import HotelGrid from "../components/hotel/HotelGrid";
+﻿import Link from "next/link";
 import BrandLogo from "../components/ui/BrandLogo";
-import hotels from "../hotels.json";
 
-const hotelPhotoSets: Record<number, string[]> = {
-  1: [101, 102, 103, 104].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  2: [105, 106, 107, 108].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  3: [109, 110, 111, 112].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  4: [113, 114, 115, 116].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  5: [117, 118, 119, 120].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  6: [121, 122, 123, 124].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  7: [125, 126, 127, 128].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  8: [129, 130, 131, 132].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  9: [133, 134, 135, 136].map((id) => `https://picsum.photos/id/${id}/800/540`),
-  10: [137, 138, 139, 140].map((id) => `https://picsum.photos/id/${id}/800/540`),
-};
+interface Hotel {
+  id: number;
+  name: string;
+  city: string;
+  price: number;
+  shortDescription: string;
+  description: string;
+  images: string[];
+}
 
-const enrichedHotels = hotels.map((hotel) => ({
-  ...hotel,
-  photos:
-    hotelPhotoSets[hotel.id] || [101, 102, 103, 104].map((id) => `https://picsum.photos/id/${id}/800/540`),
-}));
+async function getHotels(): Promise<Hotel[]> {
+  const res = await fetch("http://localhost:8000/api/hotels", {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error("Failed to fetch hotels");
+  return res.json();
+}
 
-export default function Home() {
+export default async function HomePage() {
+  const hotels = await getHotels();
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-7xl px-6 pb-8 pt-8 sm:pt-10 lg:px-8">
@@ -31,35 +30,39 @@ export default function Home() {
             <div className="max-w-2xl">
               <BrandLogo />
               <h1 className="mt-8 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Voyage de rêve dans les plus beaux hôtels du continent.
+                Nos hôtels
               </h1>
               <p className="mt-5 text-base leading-8 text-slate-300 sm:text-lg">
                 Explore des établissements soigneusement sélectionnés, avec des ambiances chaleureuses, des vues sublimes et des services haut de gamme.
               </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 shadow-xl shadow-slate-950/20">
-                <img
-                  src="https://picsum.photos/id/1018/900/600"
-                  alt="Vue d un hotel chic"
-                  className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-              <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 shadow-xl shadow-slate-950/20">
-                <img
-                  src="https://picsum.photos/id/1032/900/600"
-                  alt="Appartement de luxe"
-                  className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </section>
-      <div className="mx-auto max-w-7xl px-6 pb-16 lg:px-8">
-        <div className="mt-10" />
-        <HotelGrid hotels={enrichedHotels} />
-      </div>
+
+      <section className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {hotels.map((hotel) => (
+            <Link key={hotel.id} href={`/hotels/${hotel.id}`}>
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 shadow-xl shadow-slate-950/20 transition hover:border-white/20 hover:shadow-2xl">
+                {hotel.images && hotel.images.length > 0 && (
+                  <img
+                    src={hotel.images[0]}
+                    alt={hotel.name}
+                    className="h-64 w-full object-cover transition duration-500 hover:scale-105"
+                  />
+                )}
+                <div className="p-4">
+                  <h3 className="text-xl font-semibold">{hotel.name}</h3>
+                  <p className="text-sm text-slate-400">{hotel.city}</p>
+                  <p className="mt-2 line-clamp-2 text-sm text-slate-300">{hotel.shortDescription}</p>
+                  <p className="mt-4 text-lg font-bold text-blue-400">{hotel.price} € / nuit</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
